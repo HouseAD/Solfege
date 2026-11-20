@@ -1,0 +1,633 @@
+function addNote(duration, guid) {
+    teller = parseInt(document.getElementById("measuretype_"  + guid).value.slice(2, 3));
+    noemer = parseInt(document.getElementById("measuretype_"  + guid).value.slice(4, 5));
+    switch(noemer){
+        case 2:
+            abcjsL = teller * 16;
+            break;
+        case 4:
+            abcjsL = teller * 8;
+            break;
+        case 8:
+            abcjsL = teller * 4;
+            break;
+    }
+    
+    console.log("---       addNote       ---");
+    console.log("Waarde van de teller is   : " + teller);
+    console.log("Waarde van de noemer is   : " + noemer);
+    console.log("Waarde van de abcjsL is   : " + abcjsL);
+
+    measures = document.getElementById("measurecount_"  + guid).value;
+ 
+    if (document.getElementById("durationtot_"  + guid).value == "") {
+        durationTot = 0;
+    }    
+    else { 
+        durationTot = parseInt(document.getElementById("durationtot_"  + guid).value);
+    }
+
+    if (document.getElementById("measuretot_"  + guid).value == "") {
+        measureTot = 0;
+    }
+    else {
+        measureTot = parseInt(document.getElementById("measuretot_"  + guid).value);
+    } 
+    
+    answer = document.getElementById("answer_"  + guid).value;
+    
+    if (answer.length < 2) {
+        answer = "";
+    }
+
+    // Bepaal of het antwoord met een noot of een rust begint.
+    if (answer.indexOf('A') == -1) {
+        answer = answer.slice(answer.indexOf('z'));
+    }
+    else {
+        answer = answer.slice(answer.indexOf('A'));
+    }
+    console.log("De waarde van answer is nu : " + answer);
+    console.log("De lengte van answer is nu : " + answer.length);
+    
+    if (measureTot == measures) {
+        alert("Maximaal aantal maten gebruikt");
+    }
+    else {
+        if (durationTot + duration > abcjsL) {
+            alert("Waarde past niet binnen de maat");
+        }
+        else {
+            if(answer.slice(-1) == ">" || answer.slice(-2) == ">-") {
+                duration = duration * 2;
+                answer = answer + "A" + duration;
+            }
+            else {
+                switch(duration) {
+                    case 1:
+                        if(answer.slice(-14) == "A1A1A1A1A1A1A1") {
+                            answer = answer + "A" + duration + " ";
+                        }
+                        else {
+                            answer = answer + "A" + duration;
+                        }
+                        break;   
+                    case 2:
+                        if(answer.slice(-6) == "A2A2A2") {
+                            answer = answer + "A" + duration + " ";
+                        }
+                        else {
+                            answer = answer + "A" + duration;
+                        }
+                        break;                      
+                    case 4:
+                        if(answer.slice(-2) == "A4") {
+                            answer = answer + "A" + duration + " ";
+                        }
+                        else {
+                            answer = answer + "A" + duration;
+                        }
+                        break;
+                    default:
+                        answer = answer + "A" + duration;
+                }
+            }
+            
+            durationTot = durationTot + duration;
+
+            //  Noten groeperen per hele tel
+            
+            if(durationTot > 0 && durationTot % 8 == 0) {
+                if (answer.slice(-1) != " ") {
+                    answer = answer + " ";
+                }
+            } 
+
+            renderABCString(answer, guid);
+ 
+        }
+    }
+}
+
+function addRest(duration, guid) {
+    teller = parseInt(document.getElementById("measuretype_"  + guid).value.slice(2, 3));
+    noemer = parseInt(document.getElementById("measuretype_"  + guid).value.slice(4, 5));
+    switch(noemer){
+        case 2:
+            abcjsL = teller * 16;
+            break;
+        case 4:
+            abcjsL = teller * 8;
+            break;
+        case 8:
+            abcjsL = teller * 4;
+            break;
+    }
+
+    measures = document.getElementById("measurecount_"  + guid).value;
+ 
+    if (document.getElementById("durationtot_"  + guid).value == "") {
+        durationTot = 0;
+    }    
+    else { 
+        durationTot = parseInt(document.getElementById("durationtot_"  + guid).value);
+    }
+
+    if (document.getElementById("measuretot_"  + guid).value == "") {
+        measureTot = 0;
+    }
+    else {
+        measureTot = parseInt(document.getElementById("measuretot_"  + guid).value);
+    } 
+    
+    answer = document.getElementById("answer_"  + guid).value;
+
+    // Bepaal of het antwoord met een noot of een rust begint.
+    if (answer.indexOf('A') == -1) {
+        answer = answer.slice(answer.indexOf('z'));
+    }
+    else {
+        answer = answer.slice(answer.indexOf('A'));
+    }
+
+    if (measureTot == measures) {
+        alert("Maximaal aantal maten gebruikt");
+    }
+    else {
+        if (durationTot + duration > abcjsL) {
+            alert("Waarde past niet binnen de maat");
+        }
+        else {
+            answer = answer + "z" + duration;
+            durationTot = durationTot + duration;
+    
+            renderABCString(answer, guid);
+        }
+    }
+}
+
+function addPoint(duration, guid) {
+    teller = parseInt(document.getElementById("measuretype_"  + guid).value.slice(2, 3));
+    noemer = parseInt(document.getElementById("measuretype_"  + guid).value.slice(4, 5));
+    switch(noemer){
+        case 2:
+            abcjsL = teller * 16;
+            break;
+        case 4:
+            abcjsL = teller * 8;
+            break;
+        case 8:
+            abcjsL = teller * 4;
+            break;
+    }
+
+    measures = document.getElementById("measurecount_"  + guid).value;
+ 
+    if (document.getElementById("durationtot_"  + guid).value == "") {
+        durationTot = 0;
+    }    
+    else { 
+        durationTot = parseInt(document.getElementById("durationtot_"  + guid).value);
+    }
+
+    if (document.getElementById("measuretot_"  + guid).value == "") {
+        measureTot = 0;
+    }
+    else {
+        measureTot = parseInt(document.getElementById("measuretot_"  + guid).value);
+    } 
+    
+    answer = document.getElementById("answer_"  + guid).value;
+    
+    // Bepaal of het antwoord met een noot of een rust begint.
+    if (answer.indexOf('A') == -1) {
+        answer = answer.slice(answer.indexOf('z'));
+    }
+    else {
+        answer = answer.slice(answer.indexOf('A'));
+    }
+
+    answer = answer + ">";
+    durationTot = durationTot + (duration / 2);
+
+    renderABCString(answer, guid);
+}
+
+function addTies(guid) {
+    teller = parseInt(document.getElementById("measuretype_"  + guid).value.slice(2, 3));
+    noemer = parseInt(document.getElementById("measuretype_"  + guid).value.slice(4, 5));
+    switch(noemer){
+        case 2:
+            abcjsL = teller * 16;
+            break;
+        case 4:
+            abcjsL = teller * 8;
+            break;
+        case 8:
+            abcjsL = teller * 4;
+            break;
+    }
+    measures = document.getElementById("measurecount_"  + guid).value;
+ 
+    if (document.getElementById("durationtot_"  + guid).value == "") {
+        durationTot = 0;
+    }    
+    else { 
+        durationTot = parseInt(document.getElementById("durationtot_"  + guid).value);
+    }
+
+    if (document.getElementById("measuretot_"  + guid).value == "") {
+        measureTot = 0;
+    }
+    else {
+        measureTot = parseInt(document.getElementById("measuretot_"  + guid).value);
+    } 
+    
+    answer = document.getElementById("answer_"  + guid).value;
+
+        // Bepaal of het antwoord met een noot of een rust begint.
+        if (answer.indexOf('A') == -1) {
+            answer = answer.slice(answer.indexOf('z'));
+        }
+        else {
+            answer = answer.slice(answer.indexOf('A'));
+        }
+
+    answer = answer + "-";
+
+    renderABCString(answer, guid);
+}
+
+function cutNote(guid) {
+    answer = document.getElementById("answer_"  + guid).value;
+
+    // Bepaal of het antwoord met een noot of een rust begint.
+    if (answer.indexOf('A') === -1) {
+        answer = answer.slice(answer.indexOf('z'));
+    }
+    else {
+        answer = answer.slice(answer.indexOf('A'));
+    }
+
+    console.log("*** Functie Knip Noot ***")
+    console.log("Answer bij begin functie: " + answer);
+    console.log(answer.slice(-1));
+    console.log(answer.slice(-2));
+    let insertAtPosition;
+
+    switch(answer.slice(-1)) {
+        case "|":
+            insertAtPosition = answer.length - 4;
+            break;
+        case " ":
+            insertAtPosition = answer.length - 3;
+            break;
+        default:
+            insertAtPosition = answer.length - 2;
+    }    
+
+    console.log("Lengte answer: " + answer.length);
+    console.log("Positie      : " + insertAtPosition);
+    let stringToInsert = " ";
+    let arrAnswer = [...answer];
+    console.log("arrAnswer   : " + arrAnswer);
+    console.log(arrAnswer[insertAtPosition - 1]);
+    if (arrAnswer[insertAtPosition - 1] === "|") {
+        alert("Splitsen van noot is niet mogelijk");
+    }
+    else {
+
+        arrAnswer.splice(insertAtPosition, 0, stringToInsert);
+        answer  = arrAnswer.join('');
+        console.log("Antwoord is nu : " + answer);
+        renderABCString(answer, guid)
+    }
+}
+
+
+function clearNotes(guid) {
+    answerConst = document.getElementById("measuretype_"  + guid).value + "\n" + 
+                  "K: style=rhythm\n" +
+                  "L:1/32\n";
+    answer = "";
+    durationTot = 0;
+    measureTot = 0;
+    ABCJS.renderAbc("input_"  + guid, answerConst + "|");
+    ABCJS.renderMidi("inputmidi_"  + guid, answerConst + "|");
+    document.getElementById("durationtot_"  + guid).value = durationTot;
+    document.getElementById("measuretot_"  + guid).value = measureTot;
+    document.getElementById("answer_"  + guid).value = answerConst + answer;
+    if (document.getElementById("result_"  + guid).value != "") {
+        document.getElementById("result_"  + guid).value = "";
+    }
+}
+
+function clearOneNote(guid) {
+    teller = parseInt(document.getElementById("measuretype_"  + guid).value.slice(2, 3));
+    noemer = parseInt(document.getElementById("measuretype_"  + guid).value.slice(4, 5));
+    switch(noemer){
+        case 2:
+            abcjsL = teller * 16;
+            break;
+        case 4:
+            abcjsL = teller * 8;
+            break;
+        case 8:
+            abcjsL = teller * 4;
+            break;
+    }
+
+    console.log("---     clearOneNote    ---");
+    console.log("Waarde van guid is        : " + guid);
+    console.log("Waarde van de teller is   : " + teller);
+    console.log("Waarde van de noemer is   : " + noemer);
+    console.log("Waarde van de abcjsL is   : " + abcjsL);
+
+    measures = document.getElementById("measurecount_"  + guid).value;
+
+    console.log("Waarde van measures is    : " + measures);
+ 
+    if (document.getElementById("durationtot_"  + guid).value == "") {
+        durationTot = 0;
+    }    
+    else { 
+        durationTot = parseInt(document.getElementById("durationtot_"  + guid).value);
+    }
+
+    console.log("Waarde van durationTot is : " + durationTot);
+
+    if (document.getElementById("measuretot_"  + guid).value == "") {
+        measureTot = 0;
+    }
+    else {
+        measureTot = parseInt(document.getElementById("measuretot_"  + guid).value);
+    } 
+    
+    console.log("Waarde van measureTot is  :" + measureTot);
+
+    answer = document.getElementById("answer_"  + guid).value;
+
+    // Bepaal of het antwoord met een noot of een rust begint.
+    if (answer.indexOf('A') == -1) {
+        answer = answer.slice(answer.indexOf('z'));
+    }
+    else {
+        answer = answer.slice(answer.indexOf('A'));
+    }
+
+    console.log("De lengte van answer is   : " + answer.length);
+    console.log("De waarde van answer is   : " + answer);
+
+    if (answer.slice(-1) == " "){
+        answer = answer.slice(0, answer.length - 1);
+        console.log("De lengte van answer is   : " + answer.length);
+        console.log("De waarde van answer is   : " + answer);
+    }
+
+    if (answer.length > 2) {
+        console.log("Waarde laatste 2 karakters: " + answer.slice(-2));
+
+        if (answer.slice(-1) != "|"){
+            if (answer.slice(-2) == 32 || answer.slice(-2) == 16)
+            {
+                durationTot = durationTot - answer.slice(-2);                      
+                answer = answer.slice(0, answer.length - 3);
+                console.log("ABC string: " + answer);
+                console.log("Totale duur: " + durationTot);
+            }
+            else {                       
+                durationTot = durationTot - answer.slice(-1);
+                answer = answer.slice(0, answer.length - 2);
+                console.log("ABC string: " + answer);
+                console.log("Totale duur: " + durationTot);
+            }
+        }
+        else {
+            if (answer.slice(-2, -1) == " ") {
+                if (answer.slice(-4, -2) == 32 || answer.slice(-4, -2) == 16) {
+                    console.log("Waarde: " + answer.slice(-4, -2));
+                    measureTot = measureTot - 1;
+                    durationTot = abcjsL - answer.slice(-4, -2);  
+                    answer = answer.slice(0, answer.length - 5);  
+                    console.log("ABC string: " + answer);
+                    console.log("Totale duur: " + durationTot);
+                }
+                else {
+                    console.log("Waarde: " + answer.slice(-3, -1));
+                    measureTot = measureTot - 1;
+                    durationTot = abcjsL - answer.slice(-3, -1);  
+                    answer = answer.slice(0, answer.length - 4);  
+                    console.log("ABC string: " + answer);
+                    console.log("Totale duur: " + durationTot);
+                }                  
+            }
+            else {
+                console.log("Waarde: " + answer.slice(-2, -1));
+                measureTot = measureTot - 1;
+                durationTot = abcjsL - answer.slice(-2, -1);
+                answer = answer.slice(0, answer.length - 3);
+                console.log("ABC string: " + answer);
+                console.log("Totale duur: " + durationTot);
+            }
+        } 
+        renderABCString(answer, guid);
+    }
+    else {
+        console.log("answer.length <= 2");
+        durationTot = 0;
+        answer = answer.slice(0, answer.length - 2);
+  
+        renderABCString(answer, guid);
+    }
+    if (document.getElementById("result_"  + guid).value != "") {
+        document.getElementById("result_"  + guid).value = "";
+    }
+}
+
+function checkAnswer(abcAnswer, guid) {
+    console.log("================");
+    console.log("ANTWOORDCONTROLE");
+    console.log("================");
+    console.log("De waarde van guid is         : " + guid);   
+    
+    rightanswer =  document.getElementById("abcstring_"  + guid).value;
+    ratingType = document.getElementById("ratingtype_" + guid).value;
+
+    let score = 0;
+    let result = 0;
+    let arrABCAnswer = "";
+    let arrRightAnswer = "";
+
+    console.log("De waarde van rightanswer1 is : " + rightanswer);
+
+    if (rightanswer.indexOf('A') == -1) {
+        rightanswer =  rightanswer.slice(rightanswer.indexOf('z'));
+    }
+    else {
+        rightanswer =  rightanswer.slice(rightanswer.indexOf('A'));
+    }
+
+    console.log("De waarde van rightanswer2 is : " + rightanswer);
+    console.log("De waarde van abcAnswer is    : " + abcAnswer);
+    console.log("De waarde van measureTot is   : " + measureTot);
+    console.log("De waarde van measures is     : " + measures);  
+
+    // Aanpassen aan meerdere antwoordmogelijkheden
+    
+    // Hele noten
+    if (rightanswer.search('A32') != -1) {
+        while (abcAnswer.search("A16 -A16") != -1) {
+            abcAnswer = abcAnswer.replace("A16 -A16", "A32"); 
+        }
+    }
+    // Halve noten
+    if (rightanswer.search('A16') != -1) {
+        while (abcAnswer.search("A8 -A8") != -1) {
+            abcAnswer = abcAnswer.replace("A8 -A8", "A16"); 
+        }
+        while (abcAnswer.search("A4-A4 -A4-A4") != -1) {
+            abcAnswer = abcAnswer.replace("A4-A4 -A4-A4", "A16"); 
+        }
+    }
+    // Kwart noten
+    if (rightanswer.search('A8') != -1) {
+        while (abcAnswer.search("A4-A4") != -1) {
+            abcAnswer = abcAnswer.replace("A4-A4", "A8"); 
+        }
+    }
+    // Kwart noot overbindingdsboog achtste noot
+    if (rightanswer.search('A8 -A4') != -1) {
+        while (abcAnswer.search('A8 >') != -1) {
+            abcAnswer = abcAnswer.replace('A8 >', 'A8 -');
+        }
+    }
+    // Kwart noot overbindingdsboog kwart noot
+    if (rightanswer.search('A16') != -1) {
+        while (abcAnswer.search('A8 -A8') != -1) {
+            abcAnswer = abcAnswer.replace('A8 -A8', 'A16');
+        }
+    }
+    //  zestiende noot overbindingdsboog zestiende noot
+    if (rightanswer.search('A4') != -1) {
+        while (abcAnswer.search('A2-A2') != -1) {
+            abcAnswer = abcAnswer.replace('A2-A2', 'A4');
+        }
+    }
+
+    console.log("De waarde van abcAnswer is na aanpassing : " + abcAnswer);
+
+    // De score bepalen
+    console.log("Waarde van ratingtype is: " + ratingType);
+
+    switch(ratingType) {
+        case "ratingpernote":
+            arrABCAnswer = [...abcAnswer];
+            arrRightAnswer = [...rightanswer];
+            for (i = 0; i < abcAnswer.length; i++) {
+                if (arrABCAnswer[i] == arrRightAnswer[i]) {
+                    score = score + 1;
+                    console.log("De score is : " + score);
+                } 
+            }
+            result = (score / rightanswer.length) * 100;
+            break;
+        case "ratingpermeasure":
+            measures = document.getElementById("measurecount_"  + guid).value;
+            console.log("Aantal maten voor deze vraag is: " + measures);
+            arrABCAnswer = abcAnswer.split("|");
+            arrRightAnswer = rightanswer.split("|");
+            for (i= 0; i < measures; i++) {
+                console.log("Gegeven antwoord  : De waarde van maat " + i + "is: " + arrABCAnswer[i]);
+                console.log("Gevraagde antwoord: De waarde van maat " + i + "is: " + arrRightAnswer[i]);    
+                if (arrABCAnswer[i] == arrRightAnswer[i]) {
+                    score = score + (100/measures);
+                    console.log("De score is : " + score);                    
+                } 
+            }
+            result = score;
+            break;
+        case "ratingperexercise":
+            if (abcAnswer == rightanswer) {
+                result = 100;
+            }
+            else {
+                result = 0;
+            }
+    }
+
+    result = parseFloat(result).toFixed(2);
+    console.log("Het resultaat is  : " + result);
+
+    document.getElementById("result_" + guid).value = result + "%";
+    document.getElementById("result_"  + guid).style.fontWeight = "bold";  
+
+    if (result == parseFloat(100).toFixed(2)) {
+        document.getElementById("result_"  + guid).style.color = "green";
+    }
+    else if (result >= parseFloat(55).toFixed(2) && result < parseFloat(100).toFixed(2)) {
+        document.getElementById("result_"  + guid).style.color = "orange";
+    }
+    else {
+        document.getElementById("result_"  + guid).style.color = "red";
+    }
+
+    console.log("De lengte van rightanswer is  : " + rightanswer.length);
+    console.log("De lengte van abcAnswer is    : " + abcAnswer.length);
+}
+
+function renderABCString(answer, guid){
+    console.log("--- function: renderABCString ---");
+    console.log("INPUT - answer : " + answer);
+    console.log("INPUT - guid : " + guid);
+
+    // Stel het constante deel van de ABCString samen
+    answerConst = document.getElementById("measuretype_"  + guid).value + "\n" + 
+                  "K: style=rhythm\n" +
+                  "L:1/32\n";
+
+    // Bepaal of het antwoord met een noot of een rust begint.
+    if (answer.indexOf('A') == -1) {
+        answer = answer.slice(answer.indexOf('z'));
+    }
+    else {
+        answer = answer.slice(answer.indexOf('A'));
+    }
+
+    console.log("VALUE - durationTot : " + durationTot);
+    console.log("VALUE - answer.length : " + answer.length);
+
+    if(durationTot == 0 && answer.length > 0) {
+        ABCJS.renderAbc("input_"  + guid, answerConst + answer);
+        ABCJS.renderMidi("inputmidi_"  + guid, answerConst + answer);
+        document.getElementById("durationtot_"  + guid).value = durationTot;
+        document.getElementById("measuretot_"  + guid).value = measureTot;
+        document.getElementById("answer_"  + guid).value = answerConst + answer;
+    }    
+    else { 
+        console.log("VALUE - abcjsL : " + abcjsL);
+
+        if (durationTot == abcjsL) {
+            measureTot = measureTot + 1;
+            answer = answer + "|";
+            durationTot = 0;
+            ABCJS.renderAbc("input_"  + guid, answerConst + answer);
+            ABCJS.renderMidi("inputmidi_"  + guid, answerConst + answer);
+            document.getElementById("durationtot_"  + guid).value = durationTot;
+            document.getElementById("measuretot_"  + guid).value = measureTot;
+            document.getElementById("answer_"  + guid).value = answerConst + answer;
+            if (measureTot == measures) {
+                checkAnswer(answer, guid);
+            } 
+        }
+        else {
+            ABCJS.renderAbc("input_"  + guid, answerConst + answer  + "|");
+            ABCJS.renderMidi("inputmidi_"  + guid, answerConst + answer + "|");
+            document.getElementById("durationtot_"  + guid).value = durationTot;
+            document.getElementById("measuretot_"  + guid).value = measureTot;
+            document.getElementById("answer_"  + guid).value = answerConst + answer;
+            if (measureTot == measures) {
+                checkAnswer(answer + "|", guid);
+            } 
+        }
+    }
+}    

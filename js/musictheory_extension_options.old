@@ -1,0 +1,573 @@
+var abcjsL = 32;
+var timeSignature = "4/4";
+var measureLength = 32;
+var answerConst = "M:"+ timeSignature + "\n" +
+                  "K: style=rhythm\n" +
+                  "L:1/" + abcjsL + "\n";
+var answer = "";
+var durationTot = 0;
+var measures = document.getElementById("id_musictheory_measurecount").value;
+var measureTot = 0;
+
+function addNote(duration) {
+    var l_timesignature = document.getElementById("id_musictheory_timesignature").value;
+
+    console.log("Duration Totaal: " + durationTot);
+    console.log("Measure Totaal: " + measureTot);  
+    console.log("ABC waarde L: " + abcjsL);
+    console.log("Measures: " + measures);          
+    if (measureTot == measures) {
+        alert("Maximaal aantal maten gebruikt");
+    }
+    else {
+        if (durationTot + duration > measureLength) {
+            alert("Waarde past niet binnen de maat");
+        }
+        else {
+            if(answer.slice(-1) == ">" || answer.slice(-2) == ">-") {
+                duration = duration * 2
+                answer = answer + "A" + duration;
+            }
+            else {
+                console.log("Timesignature: " + l_timesignature);
+                if (l_timesignature == "6/8" || l_timesignature == "7/8") {
+                   switch(duration) {
+                       case 4:
+                            console.log("Komt in deze switch");
+                            if(answer.slice(-6) == "A4A4A4") {
+                                answer = answer + "A" + duration + " ";
+                            }
+                            else {
+                                answer = answer + "A" + duration;
+                            }
+                            break;   
+                        default:                         
+                            answer = answer + "A" + duration;
+                    }
+                }
+                else {
+                    switch(duration) {
+                        case 1:
+                            if(answer.slice(-14) == "A1A1A1A1A1A1A1") {
+                                answer = answer + "A" + duration + " ";
+                            }
+                            else {
+                                answer = answer + "A" + duration;
+                            }
+                            break;   
+                        case 2:
+                            if(answer.slice(-6) == "A2A2A2") {
+                                answer = answer + "A" + duration + " ";
+                            }
+                            else {
+                                answer = answer + "A" + duration;
+                            }
+                            break;                      
+                        case 4:
+                            if(answer.slice(-2) == "A4") {
+                                answer = answer + "A" + duration + " ";
+                            }
+                            else {
+                                answer = answer + "A" + duration;
+                            }
+                            break;
+                        default:
+                            answer = answer + "A" + duration;
+                    }
+                }
+            }
+
+            durationTot = durationTot + duration;
+
+            //  Noten groeperen per hele tel
+            
+            if (l_timesignature == "6/8" || l_timesignature == "7/8") {
+                if(durationTot > 0 && durationTot % 12 == 0) {
+                    if (answer.slice(-1) != " ") {
+                        answer = answer + " ";
+                    }
+                }                        
+            }
+            else {
+                if(durationTot > 0 && durationTot % 8 == 0) {
+                    if (answer.slice(-1) != " ") {
+                        answer = answer + " ";
+                    }
+                } 
+            }
+
+            console.log("ABC string: " + answer);
+            console.log("Totale duur: " + durationTot);
+            console.log("Maatlengte: " + measureLength);
+
+            if (durationTot == measureLength) {
+                measureTot = measureTot + 1;
+                durationTot = 0;
+                answer = answer + "|";
+                renderABCString(answerConst + answer)
+            }
+            else {
+                renderABCString(answerConst + answer)
+            }
+        }
+    }
+}
+
+function addRest(duration) {
+    if (measureTot == measures) {
+        alert("Maximaal aantal maten gebruikt");
+    }
+    else {
+        if (durationTot + duration > measureLength) {
+            alert("Waarde past niet binnen de maat");
+        }
+        else {
+            answer = answer + "z" + duration;
+            durationTot = durationTot + duration;
+            console.log("ABC string: " + answer);
+            console.log("Totale duur: " + durationTot);
+            if (durationTot == measureLength) {
+                measureTot = measureTot + 1;
+                answer = answer + "|";
+                durationTot = 0;
+                renderABCString(answerConst + answer)
+            }
+            else {
+                renderABCString(answerConst + answer)
+            }
+        }
+    }
+}
+
+function addPoint() {
+    console.log("Laatste karakter is: " + answer.slice(-1));
+    if (answer.slice(-1) == "|") {
+        answer = answer.slice(0, answer.length - 2);
+        console.log("De waarde van answer is: " + answer);
+    } 
+
+    if (answer.slice(-2) == 32 || answer.slice(-2) == 16) {
+        duration = answer.slice(-2)
+    }
+    else {
+        duration = answer.slice(-1)
+    }
+    console.log("Duur van laatse noot: " + duration);
+
+    console.log("Waarde van measureTot is: " + measureTot);
+    console.log("Waarde van measures is: " + measures);
+    console.log("Waarde van durationTot is: " + durationTot);
+    console.log("Waarde van measureLength is: " + measureLength);
+
+    if (measureTot == measures) {
+        alert("Maximaal aantal maten gebruikt");
+    }
+    else { 
+        if (answer.slice(-4, -3) == ">" || answer.slice(-3, -3) == ">") {
+            duration = duration / 2;
+            console.log("Waarde van duration na . is: " + duration)    
+        }
+
+        if (parseInt(durationTot) + (parseInt(duration) / 2) > parseInt(measureLength)) {
+            alert("Waarde past niet binnen de maat");
+        }
+        else {
+            answer = answer + ">";
+            durationTot = durationTot + (duration / 2);
+            console.log("Duur van .: " + duration / 2);
+            console.log("ABC string: " + answer);
+            console.log("Totale duur: " + durationTot);
+            if (durationTot == measureLength) {
+                answer = answer + "|";
+                durationTot = 0;
+                measureTot = measureTot + 1;
+                renderABCString(answerConst + answer)
+            }
+            else {
+                renderABCString(answerConst + answer)
+            }
+        }
+    }
+}
+
+function addTies(duration) {
+    answer = answer + "-";
+    if (durationTot == measureLength) {
+        answer = answer + "|";
+        durationTot = 0;
+        renderABCString(answerConst + answer)
+    }
+    else {
+        renderABCString(answerConst + answer)
+    }
+}
+
+function cutNote() {
+    console.log("Answer bij begin functie: " + answer);
+    console.log(answer.slice(-1));
+    console.log(answer.slice(-2));
+    let insertAtPosition;
+
+    switch(answer.slice(-1)) {
+        case "|":
+            insertAtPosition = answer.length - 4;
+            break;
+        case " ":
+            insertAtPosition = answer.length - 3;
+            break;
+        default:
+            insertAtPosition = answer.length - 2;
+    }    
+
+    console.log("Lengte answer: " + answer.length);
+    console.log("Positie      : " + insertAtPosition);
+    let stringToInsert = " ";
+    let arrAnswer = [...answer];
+    console.log("arrAnswer   : " + arrAnswer);
+    console.log(arrAnswer[insertAtPosition - 1]);
+    if (arrAnswer[insertAtPosition - 1] === "|") {
+        alert("Splitsen van noot is niet mogelijk");
+    }
+    else {
+
+        arrAnswer.splice(insertAtPosition, 0, stringToInsert);
+        answer  = arrAnswer.join('');
+        console.log("Antwoord is nu : " + answer);
+        renderABCString(answerConst + answer)
+    }
+}
+
+function clearNotes() {
+    answer = "";
+    durationTot = 0;
+    measureTot = 0;
+    renderABCString(answerConst)
+}
+
+function clearOneNote() {
+    console.log("lengte van answer: " + answer.length);
+    console.log("ABC string: " + answer);
+    if (answer.slice(-1) == " "){
+        answer = answer.slice(0, answer.length - 1);
+        console.log("ABC string: " + answer);
+    }
+    if (answer.length > 2) {
+        console.log("waarde van laatste 2 karakters: " + answer.slice(-2));
+        if (answer.slice(-1) != "|"){
+            if (answer.slice(-1) == ">") {
+                answer = answer.slice(0, answer.length - 1);
+            }
+            else {
+                if (answer.slice(-2) == 32 || answer.slice(-2) == 16)
+                {
+                    durationTot = durationTot - answer.slice(-2);                      
+                    answer = answer.slice(0, answer.length - 3);
+                    console.log("ABC string: " + answer);
+                    console.log("Totale duur: " + durationTot);
+                }
+                else {                       
+                    durationTot = durationTot - answer.slice(-1);
+                    answer = answer.slice(0, answer.length - 2);
+                    console.log("ABC string: " + answer);
+                    console.log("Totale duur: " + durationTot);
+                }
+            }
+        }
+        else {
+            if (answer.slice(-2, -1) == " ") {
+                if (answer.slice(-4, -2) == 32 || answer.slice(-4, -2) == 16) {
+                    console.log("Waarde: " + answer.slice(-4, -2));
+                    measureTot = measureTot - 1;
+                    durationTot = measureLength - answer.slice(-4, -2);  
+                    answer = answer.slice(0, answer.length - 5);  
+                    console.log("ABC string: " + answer);
+                    console.log("Totale duur: " + durationTot);
+                }
+                else {
+                    console.log("Waarde: " + answer.slice(-3, -1));
+                    measureTot = measureTot - 1;
+                    durationTot = measureLength - answer.slice(-3, -1);  
+                    answer = answer.slice(0, answer.length - 4);  
+                    console.log("ABC string: " + answer);
+                    console.log("Totale duur: " + durationTot);
+                }                  
+            }
+            else {
+                console.log("Waarde: " + answer.slice(-2, -1));
+                measureTot = measureTot - 1;
+                durationTot = measureLength - answer.slice(-2, -1);
+                answer = answer.slice(0, answer.length - 3);
+                console.log("ABC string: " + answer);
+                console.log("Totale duur: " + durationTot);
+            }
+        } 
+       if (durationTot == 0) {
+            if (measureTot == 0) {
+                ABCJS.renderAbc("input", answerConst + "|"); 
+                ABCJS.renderMidi("inputmidi", answerConst + "|"); 
+                document.getElementById("id_musictheory_abcstring").value = answerConst + "|"; 
+            }
+            else {                        
+                ABCJS.renderAbc("input", answerConst + answer); 
+                ABCJS.renderMidi("inputmidi", answerConst + answer);
+                document.getElementById("id_musictheory_abcstring").value = answerConst + answer;  
+            } 
+        }
+        else {
+            ABCJS.renderAbc("input", answerConst + answer  + "|");
+            ABCJS.renderMidi("inputmidi", answerConst + answer + "|");
+            document.getElementById("id_musictheory_abcstring").value = answerConst + answer + "|"; 
+        }
+    }
+    else {
+        durationTot = 0;
+        answer = answer.slice(0, answer.length - 2);
+        renderABCString(answerConst + answer)
+    }
+    if (measureTot == measures) {
+        measureTot = measureTot - 1;
+    }
+}
+
+function setMeasureCount() {
+
+    var l_measurecount = parseInt(document.getElementById("id_musictheory_measurecount").value);
+
+    console.log("l_measurecount heeft de waarde: " + l_measurecount);
+    console.log("measureTot heeft de waarde: " + measureTot);
+
+    if (l_measurecount < measureTot) {
+        alert("Meer maten in gebruik dan " + l_measurecount);
+        document.getElementById("id_musictheory_measurecount").value = measures;
+    }
+    else {
+        measures = parseInt(document.getElementById("id_musictheory_measurecount").value);
+        console.log ("Aantal maten: " + measures);
+    } 
+}
+
+function setTimeSignature() {
+
+    var l_timesignature = document.getElementById("id_musictheory_timesignature").value;
+
+    console.log("Maatsoort: " + l_timesignature);
+
+    switch (l_timesignature) {
+        case "2/2":
+            measureLength = 32;
+            abcjsL = 32;
+            break;  
+        case "3/2":
+            measureLength = 48;
+            abcjsL = 32;
+            break;
+        case "2/4":
+            measureLength = 16;
+            abcjsL = 32;
+            break;  
+        case "3/4":
+            measureLength = 24;
+            abcjsL = 32;
+            break;
+        case "4/4":
+            measureLength = 32;
+            abcjsL = 32;
+            break;   
+        case "5/4":
+            measureLength = 40;
+            abcjsL = 32;
+            break;    
+        case "6/8":
+            measureLength = 24;
+            abcjsL = 32;
+            break;  
+        case "7/8":
+            measureLength = 28;
+            abcjsL = 32;
+            break;                         
+    }
+
+    answerConst = "M:"+ l_timesignature + "\n" +
+    "K: style=rhythm\n" +
+    "L:1/" + abcjsL + "\n";
+    clearNotes();
+}
+
+function chosenTimesignaturecatergory() {
+    var l_timesignature_category = document.getElementById("id_musictheory_timesignaturecategory").value;
+    var l_timesignature = "";
+    var timesignaturelist = new Array();
+    var list = document.getElementById("id_musictheory_timesignature");
+
+    console.log("Gekozen maatsoortcategorie: " + l_timesignature_category);
+
+    if (list.hasChildNodes()) {            
+        while (list.hasChildNodes()) {  
+            list.removeChild(list.firstChild);
+        }
+    }
+
+    switch (l_timesignature_category) {
+        case "n/2":
+            timesignaturelist = ["2/2", "3/2"];
+            break;
+        case "n/4":
+            timesignaturelist = ["2/4", "3/4", "4/4", "5/4"];
+            break;
+        case "n/8":
+            timesignaturelist = ["6/8", "7/8"];
+            break;
+        }
+
+    timesignaturelist.forEach(function(item){
+       var option = document.createElement("option");
+       option.value = item;
+       option.text = item;
+       switch (item) {
+        case "2/2":
+            option.selected = "selected";
+            l_timesignature = item;
+            measureLength = 32;
+            abcjsL = 32;
+            break;
+        case "4/4":
+            option.selected = "selected";
+            l_timesignature = item
+            measureLength = 32;
+            abcjsL = 32;
+            break;
+        case "6/8":
+            option.selected = "selected";
+            l_timesignature = item;
+            measureLength = 24;
+            abcjsL = 32;
+            break;
+        }
+        list.appendChild(option);
+    });
+
+    console.log("Maatsoort: " + l_timesignature);
+    console.log("Maatlengte: " + measureLength);
+    console.log("abcjsL: " + abcjsL); 
+   
+    answerConst = "M:"+ l_timesignature + "\n" +
+    "K: style=rhythm\n" +
+    "L:1/" + abcjsL + "\n";
+    clearNotes();
+}
+
+function renderABCString(abcString){ 
+    var test = ABCJS.synth.supportsAudio();
+    console.log("Er wordt getest op: " + test);
+    /*     if (ABCJS.synth.supportsAudio()) {
+        console.log('code komt in de if');
+        // synthControl = new ABCJS.synth.SynthController();
+        // synthControl.load("#inputmidi", cursorControl, {displayLoop: true, displayRestart: true, displayPlay: true, displayProgress: true, displayWarp: true});
+    } else {
+        document.querySelector("#inputmidi").innerHTML = "<div class='audio-error'>Audio is not supported in this browser.</div>";
+        console.log('code komt in de else');
+    } */
+    // setTune(false);
+
+    if (abcString.slice(-1) == "|") {
+        ABCJS.renderAbc("input", abcString);
+        ABCJS.renderMidi("inputmidi",
+        abcString,
+        {
+            inlineControls: {
+              tempo: true,
+           },
+        });
+        document.getElementById("id_musictheory_abcstring").value = abcString;
+    }
+    else {                
+        ABCJS.renderAbc("input", abcString + "|");
+        ABCJS.renderMidi("inputmidi",
+        abcString + "|",
+        {
+            inlineControls: {
+              tempo: true,
+           },
+        });
+        document.getElementById("id_musictheory_abcstring").value = abcString + "|";
+    }
+    icon = document.getElementById("control_icon");
+    message = document.getElementById("oefeningcompleet");
+    if (measureTot == measures) {
+        icon.src = "/question/type/musictheory/roysmusicquestion/images/vinkje.png";
+        message.innerHTML = "De oefening is compleet.<br><br>";
+    }
+    else {
+        icon.src = "/question/type/musictheory/roysmusicquestion/images/kruis.png"; 
+        message.innerHTML = "De oefening is nog incompleet.<br><br>";     
+    } 
+}
+
+function onchangeABCString(){
+    var abcString = document.getElementById("id_musictheory_abcstring").value;
+
+    // Aantal maten bepalen op basis van de abcString
+    
+    if (abcString.slice(-1) != "|") {
+        abcString = abcString + " |";
+    }
+
+    var countmeasures = (abcString.match(/\|/g)||[]).length;
+    document.getElementById("id_musictheory_measurecount").value = countmeasures;
+    measures = countmeasures;
+
+    // Maatsoort bepalen op basis van abcString
+
+    timesignature = abcString.substring(abcString.indexOf("M") + 2, abcString.indexOf("M") + 5);
+    console.log("De maatsoort is: " + timesignature);
+    if (document.getElementById("id_musictheory_timesignature").value != timesignature){                
+        // Bepaal of de maatsoort categorie gewijzigd is
+        if (document.getElementById("id_musictheory_timesignaturecategory").value != "n" + timesignature.substring(1)){
+            document.getElementById("id_musictheory_timesignaturecategory").value = "n" + timesignature.substring(1);
+            chosenTimesignaturecatergory();
+        }
+        document.getElementById("id_musictheory_timesignature").value = timesignature;
+    }
+
+    abcString = abcString.replace("K:", "\nK:");
+    abcString = abcString.replace("L:", "\nL:")
+    abcString = abcString.replace("A", "\nA");
+
+    ABCJS.renderAbc("input", abcString);
+    ABCJS.renderMidi("inputmidi",
+    abcString,
+    {
+        inlineControls: {
+          tempo: true,
+       },
+    });
+    
+    document.getElementById("id_musictheory_abcstring").value = abcString;
+}
+
+window.onload = function() {
+    if (document.getElementById("id_musictheory_abcstring").value == "") {
+        document.getElementById("id_musictheory_timesignaturecategory").value = "n/4";
+        chosenTimesignaturecatergory();
+        //document.getElementById("id_musictheory_timesignature").value = "4/4";
+        renderABCString(answerConst);
+    }
+    else {
+        abcString = document.getElementById("id_musictheory_abcstring").value;
+        abcString = abcString.replace("K:", "\nK:");
+        abcString = abcString.replace("L:", "\nL:")
+        abcString = abcString.replace("A", "\nA");
+
+        measureTot = (abcString.match(/\|/g)||[]).length;
+        console.log("Waarde van measures: " + measures);
+        console.log("Waarde van measureTot: " + measureTot);
+        // if (measureTot > measures) {
+        //    document.getElementById("measurecount").value = measureTot;
+        //    measures = measureTot;
+        // }
+
+        answerConst = abcString.substring(0, abcString.indexOf("A"));
+        answer = abcString.substring(abcString.indexOf("A"));
+        renderABCString(answerConst + answer);
+    }
+}
