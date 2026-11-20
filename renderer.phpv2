@@ -1,0 +1,541 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * This defines renderer classes for music theory question subtypes related
+ * to notes/pitch.
+ *
+ * @package    qtype
+ * @subpackage musictheory
+ * @copyright  2014 Eric Brisson
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+defined('MOODLE_INTERNAL') || die();
+
+require_once(dirname(dirname(__FILE__)) . '/renderer.php');
+
+/**
+ * Renders music theory note writing questions.
+ *
+ * @copyright  2014 Eric Brisson
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class qtype_musictheory_roys_music_question_write_renderer extends qtype_musictheory_renderer {
+
+    public function formulation_and_controls(question_attempt $qa, question_display_options $options) {
+
+        global $PAGE, $OUTPUT;
+
+        $PAGE->requires->yui_module('moodle-qtype_musictheory-musictheoryui', 'M.qtype_musictheory.musictheoryui.init');
+
+        $inputname = $qa->get_qt_field_name('answer');
+        $question = $qa->get_question();
+        $initialinput = $qa->get_last_qt_var('answer');
+        if ($options->rightanswer) {
+            $correctresponsearray = $question->get_correct_response();
+            $correctresponse = $correctresponsearray['answer'];
+        } else {
+            $correctresponse = null;
+        }
+
+        $correctansstr = ($question->musictheory_considerregister) ? 'correctansweris' : 'correctansweris_morethanone';
+
+        $moduleparams = array(
+            array(
+                'inputname'        => $inputname,
+                'optionsxml'       => $question->musictheory_optionsxml,
+                'readonly'         => $options->readonly,
+                'initialinput'     => $initialinput,
+                'correctresponse'  => $correctresponse,
+                'correctrespstr'   => get_string('correctansweris', 'qtype_musictheory'),
+                'additionalparams' => array(
+                )
+            )
+        );
+
+        $qtypemod = 'moodle-qtype_musictheory-musictheoryqtype';
+        $rendernamespace = 'M.qtype_musictheory.musictheoryqtype.initQuestionRender';
+        $PAGE->requires->yui_module($qtypemod, $rendernamespace, $moduleparams);
+
+        $inputattributes = array(
+            'type'  => 'hidden',
+            'name'  => $inputname,
+            'value' => $initialinput,
+            'id'    => $inputname
+        );
+
+        if ($options->readonly) {
+            $inputattributes['readonly'] = 'readonly';
+        }
+
+        $questiontext = $question->format_questiontext($qa);
+        $input = html_writer::empty_tag('input', $inputattributes);
+        $result = html_writer::tag('div', $questiontext, array('class' => 'qtext'));
+
+        $nonjavascriptdivattr = array(
+            'id'    => 'musictheory_div_replacedbycanvas_' . $inputname,
+            'class' => 'ablock'
+        );
+
+        $result .= html_writer::start_tag('div', $nonjavascriptdivattr);
+        $result .= $input;
+        $result .= get_string('javascriptrequired', 'qtype_musictheory');
+        $result .= html_writer::end_tag('div');
+
+        $javascriptdivattr = array(
+            'id'    => 'musictheory_div_canvas_' . $inputname,
+            'class' => 'ablock',
+            'style' => 'display:none'
+        );
+        $result .= html_writer::start_tag('div', $javascriptdivattr);
+        if (!$options->readonly) {
+            $result .= $OUTPUT->help_icon('roys_music_question_write_questionasui', 'qtype_musictheory', '');
+        }
+        $result .= html_writer::end_tag('div');
+
+        if ($qa->get_state() == question_state::$invalid) {
+            $result .= html_writer::nonempty_tag('div', $question->get_validation_error(array('answer' => $initialinput)),
+                                                                                        array('class' => 'validationerror'));
+        }
+
+        return $result;
+    }
+
+    public function correct_response(question_attempt $qa) {
+        $question = $qa->get_question();
+        $correctresponsearray = $question->get_correct_response();
+        $correctansstr = ($question->musictheory_considerregister) ? 'correctansweris' : 'correctansweris_morethanone';
+        return get_string($correctansstr, 'qtype_musictheory') . ' ' .
+                $correctresponsearray['answer'];
+    }
+
+}
+
+/**
+ * Renders music theory note identification questions.
+ *
+ * @copyright  2014 Eric Brisson
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class qtype_musictheory_roys_music_question_identify_renderer extends qtype_musictheory_renderer {
+
+    public function formulation_and_controls(question_attempt $qa, question_display_options $options) {
+      
+        global $PAGE;
+
+        $PAGE->requires->yui_module('moodle-qtype_musictheory-musictheoryui', 'M.qtype_musictheory.musictheoryui.init');
+
+        $question = $qa->get_question();
+
+        $ltrselectid = $qa->get_qt_field_name('musictheory_answer_ltr');
+
+        if ($question->musictheory_includealterations) {
+            $accselectid = $qa->get_qt_field_name('musictheory_answer_acc');
+        }
+
+        if ($question->musictheory_considerregister) {
+            $regselectid = $qa->get_qt_field_name('musictheory_answer_reg');
+        }
+
+        $ltr = $question->musictheory_givennoteletter;
+        $acc = $question->musictheory_givennoteaccidental;
+        $reg = $question->musictheory_givennoteregister;
+
+        $currltr = $qa->get_last_qt_var('musictheory_answer_ltr');
+        $curracc = $qa->get_last_qt_var('musictheory_answer_acc');
+        $currreg = $qa->get_last_qt_var('musictheory_answer_reg');
+
+        $moduleparams = array(
+            array(
+                'inputname'        => $ltrselectid,
+                'optionsxml'       => $question->musictheory_optionsxml,
+                'readonly'         => true,
+                'initialinput'     => $ltr . $acc . $reg,
+                'correctresponse'  => null,
+                'correctrespstr'   => get_string('correctansweris', 'qtype_musictheory'),
+                'additionalparams' => array(
+                )
+            )
+        );
+                        
+        $qtypemod = 'moodle-qtype_musictheory-musictheoryqtype';
+        $rendernamespace = 'M.qtype_musictheory.musictheoryqtype.initQuestionRender';
+        $PAGE->requires->yui_module($qtypemod, $rendernamespace, $moduleparams);
+
+        $selectoptionsltr = array(
+            ''  => '',
+            'C' => get_string('notec', 'qtype_musictheory'),
+            'D' => get_string('noted', 'qtype_musictheory'),
+            'E' => get_string('notee', 'qtype_musictheory'),
+            'F' => get_string('notef', 'qtype_musictheory'),
+            'G' => get_string('noteg', 'qtype_musictheory'),
+            'A' => get_string('notea', 'qtype_musictheory'),
+            'B' => get_string('noteb', 'qtype_musictheory')
+        );
+
+        $ltrselectattributes = array(
+            'name' => $ltrselectid,
+            'id'   => $ltrselectid
+        );
+
+        if ($question->musictheory_includealterations) {
+            $selectoptionsacc = array(
+                ''   => '',
+                'n'  => get_string('acc_n', 'qtype_musictheory'),
+                '#'  => get_string('acc_sharp', 'qtype_musictheory'),
+                'b'  => get_string('acc_b', 'qtype_musictheory'),
+                'x'  => get_string('acc_x', 'qtype_musictheory'),
+                'bb' => get_string('acc_bb', 'qtype_musictheory'),
+            );
+
+            $accselectattributes = array(
+                'name' => $accselectid,
+                'id'   => $accselectid
+            );
+        }
+
+        if ($question->musictheory_considerregister) {
+            $selectoptionsreg = array(
+                ''  => '',
+                '1' => '1',
+                '2' => '2',
+                '3' => '3',
+                '4' => '4',
+                '5' => '5',
+                '6' => '6',
+            );
+
+            $regselectattributes = array(
+                'name' => $regselectid,
+                'id'   => $regselectid
+            );
+        }
+
+        if ($options->readonly) {
+            $ltrselectattributes['disabled'] = 'true';
+            if ($question->musictheory_includealterations) {
+                $accselectattributes['disabled'] = 'true';
+            }
+            if ($question->musictheory_considerregister) {
+                $regselectattributes['disabled'] = 'true';
+            }
+        }
+
+        if ($options->correctness) {
+            $corrresp = $question->get_correct_response();
+            if (!is_null($currltr)) {
+                if ($currltr === $corrresp['musictheory_answer_ltr']) {
+                    $ltrselectattributes['class'] = $this->feedback_class(1);
+                } else {
+                    $ltrselectattributes['class'] = $this->feedback_class(0);
+                }
+            }
+            if ($question->musictheory_includealterations && !is_null($curracc)) {
+                if ($curracc === $corrresp['musictheory_answer_acc']) {
+                    $accselectattributes['class'] = $this->feedback_class(1);
+                } else {
+                    $accselectattributes['class'] = $this->feedback_class(0);
+                }
+            }
+            if ($question->musictheory_considerregister && !is_null($currreg)) {
+                if ($currreg === $corrresp['musictheory_answer_reg']) {
+                    $regselectattributes['class'] = $this->feedback_class(1);
+                } else {
+                    $regselectattributes['class'] = $this->feedback_class(0);
+                }
+            }
+        }
+
+        $questiontext = $question->format_questiontext($qa);
+        $result = html_writer::tag('div', $questiontext, array('class' => 'qtext'));
+        $ltrinputname = $qa->get_qt_field_name('musictheory_answer_ltr');
+        $nonjavascriptdivattr = array(
+            'id'    => 'musictheory_div_replacedbycanvas_' . $ltrinputname,
+            'class' => 'ablock'
+        );
+
+        // $result .= html_writer::start_tag('div', $nonjavascriptdivattr);
+        // $result .= get_string('javascriptrequired', 'qtype_musictheory');
+        // $result .= html_writer::end_tag('div');
+
+        $javascriptdivattr = array(
+            'id'    => 'musictheory_div_canvas_' . $ltrselectid,
+            'class' => 'ablock',
+            'style' => 'display:none'
+        );
+        $result .= html_writer::tag('div', '', $javascriptdivattr);
+
+        // $input = html_writer::select($selectoptionsltr, $ltrselectid, $currltr, true, $ltrselectattributes);
+        // if ($question->musictheory_includealterations) {
+        //     $input .= html_writer::select($selectoptionsacc, $accselectid, $curracc, true, $accselectattributes);
+        // }
+        // if ($question->musictheory_considerregister) {
+        //     $input .= html_writer::select($selectoptionsreg, $regselectid, $currreg, true, $regselectattributes);
+        // }
+
+        // $result .= html_writer::start_tag('div', array('class' => 'ablock'));
+        // $result .= $input;
+        // $result .= html_writer::end_tag('div');
+       
+       $optionxml = strval($moduleparams[0][optionsxml]);
+       $abcstring = substr($optionxml, strpos($optionxml, '<abcstring>') + 11, strpos($optionxml, '</abcstring>') - strpos($optionxml, '<abcstring>') - 11);
+       $abctempo = substr($optionxml, strpos($optionxml, '<abctempo>') + 10, strpos($optionxml, '</abctempo>') - strpos($optionxml, '<abctempo>') - 10);
+       $measurecount = substr($optionxml, strpos($optionxml, '<measurecount>') + 14, strpos($optionxml, '</measurecount>') - strpos($optionxml, '<measurecount>') - 14);
+       $ratingtype = substr($optionxml, strpos($optionxml, '<ratingtype>') + 12, strpos($optionxml, '</ratingtype>') - strpos($optionxml, '<ratingtype>') - 12);
+
+       
+       // Create GUID
+       $guid = '';
+       $namespace = rand(11111, 99999);
+       $uid = uniqid('', true);
+       $data = $namespace;
+       $data .= $_SERVER['REQUEST_TIME'];
+       $data .= $_SERVER['HTTP_USER_AGENT'];
+       $data .= $_SERVER['REMOTE_ADDR'];
+       $data .= $_SERVER['REMOTE_PORT'];
+       $hash = strtoupper(hash('ripemd128', $uid . $guid . md5($data)));
+       $guid = substr($hash,  0,  8) . '-' .
+               substr($hash,  8,  4) . '-' .
+               substr($hash, 12,  4) . '-' .
+               substr($hash, 16,  4) . '-' .
+               substr($hash, 20, 12);
+
+       $result .= html_writer::div('
+       <script>
+            console.log("Waarde van guid: ' . $guid . '");
+            console.log("Waarde van $abcstring (php): ' . $abcstring . '");
+            console.log("Waarde van $measurecount (php): ' . $measurecount . '");
+            console.log("Waarde van $ratingtype (php): ' . $ratingtype . '");
+            
+            var guid = "'. $guid . '";
+
+            var abc = "X:2\n" + "' . substr($abcstring, 0, 5) . '\n" + "' . substr($abcstring, strpos($abcstring, 'L:'), 6) . '\n" + "' . substr($abcstring, strpos($abcstring, 'L:') + 6).  '";
+            console.log("Waarde van abc (js): " + abc);
+            
+            var answerConst = "' . substr($abcstring, 0, 5) . '\n" + 
+                  "K: style=rhythm\n" +
+                  "L:1/32\n";
+            console.log("Waarde van guid (js): " + guid);
+            console.log("Waarde van abc (js): " + abc);
+       </script>
+       <script src="/question/type/musictheory/roysmusicquestion/js/musictheory_extension_render.js" defer></script>
+       <div id="main_' . $guid . '">
+            OPGAVE:<div id="audio_' . $guid . '"></div>
+            <button id="playbutton_' . $guid . '" class="activate-audio" type="button">PLAY</button>           
+            <!-- <div id="midi_' . $guid . '"></div> -->
+            <script>
+                console.log("De waarde van abc is: " + abc);
+                // First draw the music - this supplies an object that has a lot of information about how to create the synth.
+                // NOTE: If you want just the sound without showing the music, use "*" instead of "paper" in the renderAbc call.
+                var visualObj = ABCJS.renderAbc("audio_"  + guid, abc, {
+                    scale: "1"})[0];
+                // var visualObj = ABCJS.renderAbc("*", abc, {
+                //    scale: "1"})[0];
+                // This object is the class that will contain the buffer
+                console.log("De waarde van midiBuffer: ", midiBuffer);
+                var midiBuffer = [];
+                console.log("De waarde van midiBuffer: ", midiBuffer);
+            
+                // var startAudioButton = document.querySelector(".activate-audio");
+                var startAudioButton = document.getElementById("playbutton_" + guid);
+                console.log("Het opbject startAudioButton", startAudioButton);
+                // var stopAudioButton = document.querySelector(".stop-audio");
+                // var explanationDiv = document.querySelector(".suspend-explanation");
+                var statusDiv = document.querySelector(".status");
+            
+                startAudioButton.setAttribute("type", "button");
+                // stopAudioButton.setAttribute("type", "button");
+            
+                console.log("De waarde van supportsAudio: ", ABCJS.synth.supportsAudio());
+                startAudioButton.addEventListener("click", function() {
+                    startAudioButton.setAttribute("style", "display:none;");
+                    // explanationDiv.setAttribute("style", "opacity: 0;"); Later toevoegen
+                    // statusDiv.innerHTML = "<div>Testing browser</div>";
+                    if (ABCJS.synth.supportsAudio()) {
+                        // stopAudioButton.setAttribute("style", "");
+                        // An audio context is needed - this can be passed in for two reasons:
+                        // 1) So that you can share this audio context with other elements on your page.
+                        // 2) So that you can create it during a user interaction so that the browser doesnt block the sound.
+                        // Setting this is optional - if you dont set an audioContext, then abcjs will create one.
+                        window.AudioContext = window.AudioContext ||
+                            window.webkitAudioContext ||
+                            navigator.mozAudioContext ||
+                            navigator.msAudioContext;
+                        var audioContext = new window.AudioContext();
+                        console.log("AudioContext: ", audioContext);
+                        audioContext.resume().then(function () {
+                            // statusDiv.innerHTML += "<div>AudioContext resumed</div>";
+                            // In theory the AC shouldnt start suspended because it is being initialized in a click handler, but iOS seems to anyway.
+            
+                            // This does a bare minimum so this object could be created in advance, or whenever convenient.
+                            midiBuffer = new ABCJS.synth.CreateSynth();
+                            
+                            // midiBuffer.init preloads and caches all the notes needed. There may be significant network traffic here.
+                            console.log("Waarde van millisecondsPerMeasure: " + visualObj.millisecondsPerMeasure());
+                            console.log("Standaard waarde van abctempo: 4000");
+                            let abctempo = 4000;
+                            if (document.getElementById("id_musictheory_abctempo").value !== "") {
+                                abctempo = (60 / (document.getElementById("id_musictheory_abctempo").value / document.getElementById("id_musictheory_timesignature").value.substring(0,1))) * 1000;
+                                console.log("De waarde van abctempo: " + abctempo + " miliseconds per measurement");
+                            }
+                            return midiBuffer.init({
+                                visualObj: visualObj,
+                                audioContext: audioContext,
+                                // millisecondsPerMeasure: visualObj.millisecondsPerMeasure()
+                                millisecondsPerMeasure: abctempo,
+                                options: {
+                                    onEnded: audioContext = []
+                                }
+                            }).then(function (response) {
+                                console.log("Notes loaded: ", response)
+                                // statusDiv.innerHTML += "<div>Audio object has been initialized</div>";
+                                // console.log(response); // this contains the list of notes that were loaded.
+                                // midiBuffer.prime actually builds the output buffer.
+                                return midiBuffer.prime();
+                            }).then(function (response) {
+                                // statusDiv.innerHTML += "<div>Audio object has been primed (" + response.duration + " seconds).</div>";
+                                // statusDiv.innerHTML += "<div>status = " + response.status + "</div>"
+                                // At this point, everything slow has happened. midiBuffer.start will return very quickly and will start playing very quickly without lag.
+                                console.log("MidiBuffer: ", midiBuffer);
+                                midiBuffer.start();
+                                // statusDiv.innerHTML += "<div>Audio started</div>";
+                                return Promise.resolve();
+                            }).catch(function (error) {
+                                if (error.status === "NotSupported") {
+                                    // stopAudioButton.setAttribute("style", "display:none;");
+                                    var audioError = document.querySelector(".audio-error");
+                                    audioError.setAttribute("style", "");
+                                } else
+                                    console.warn("synth error", error);
+                            });
+                        });
+                    } else {
+                        var audioError = document.querySelector(".audio-error");
+                        audioError.setAttribute("style", "");
+                    }
+                });
+
+                // stopAudioButton.addEventListener("click", function() {
+                //     startAudioButton.setAttribute("style", "");
+                //     // explanationDiv.setAttribute("style", ""); later toevoegen
+                //     stopAudioButton.setAttribute("style", "display:none;");
+                //     if (midiBuffer) {
+                //         midiBuffer.stop();
+                //     } 
+                // });
+
+                // ABCJS.renderMidi("midi_" + guid,
+                // abc,
+                // {
+                // inlineControls: {
+                //    tempo: true,
+                // },
+                // });
+            </script>
+            ANTWOORD:<div id="input_' . $guid . '"></div>
+            <script>
+                ABCJS.renderAbc("input_" + guid, answerConst + "|");
+            </script>
+            <div style="margin-bottom: 5px">
+                <button type="button" onclick="addNote(32,' . '\'' . $guid . '\'' . ')"><img src="/question/type/musictheory/roysmusicquestion/images/HeleNoot.png"></button>
+                <button type="button" onclick="addNote(16,' . '\'' . $guid . '\'' . ')"><img src="/question/type/musictheory/roysmusicquestion/images/HalveNoot.png"></button>
+                <button type="button" onclick="addNote(8,' . '\'' . $guid . '\'' . ')"><img src="/question/type/musictheory/roysmusicquestion/images/KwartNoot.png"></button>
+                <button type="button" onclick="addNote(4,' . '\'' . $guid . '\'' . ')"><img src="/question/type/musictheory/roysmusicquestion/images/AchsteNoot.png"></button>
+                <button type="button" onclick="addNote(2,' . '\'' . $guid . '\'' . ')"><img src="/question/type/musictheory/roysmusicquestion/images/ZestiendeNoot.png"></button>
+                <button type="button" onclick="addNote(1,' . '\'' . $guid . '\'' . ')"><img src="/question/type/musictheory/roysmusicquestion/images/TweeEnDertigsteNoot.png"></button>
+                <button type="button" onclick="addPoint(' . '\'' . $guid . '\'' . ')"><img src="/question/type/musictheory/roysmusicquestion/images/NootMetPunt.png"></button>
+                <button type="button" onclick="addTies(' . '\'' . $guid . '\'' . ')"><img src="/question/type/musictheory/roysmusicquestion/images/Verbindingsboog.png"></button>
+                <button type="button" onclick="cutNote(' . '\'' . $guid . '\'' . ')" style="margin-left: 25px;"><img src="/question/type/musictheory/roysmusicquestion/images/KnipNoot.png"></button>           
+                <button type="button" onclick="clearOneNote(' . '\'' . $guid . '\'' . ')"><img src="/question/type/musictheory/roysmusicquestion/images/WisNoot.png"></button>
+                <button type="button" onclick="clearNotes(' . '\'' . $guid . '\'' . ')"><img src="/question/type/musictheory/roysmusicquestion/images/WisBalk.png"></button>
+            </div>
+            <div>
+                <button type="button" onclick="addRest(32,' . '\'' . $guid . '\'' . ')"><img src="/question/type/musictheory/roysmusicquestion/images/HeleRust.png"></button>
+                <button type="button" onclick="addRest(16,' . '\'' . $guid . '\'' . ')"><img src="/question/type/musictheory/roysmusicquestion/images/HalveRust.png"></button>
+                <button type="button" onclick="addRest(8,' . '\'' . $guid . '\'' . ')"><img src="/question/type/musictheory/roysmusicquestion/images/KwartRust.png"></button>
+                <button type="button" onclick="addRest(4,' . '\'' . $guid . '\'' . ')"><img src="/question/type/musictheory/roysmusicquestion/images/AchsteRust.png"></button>
+                <button type="button" onclick="addRest(2,' . '\'' . $guid . '\'' . ')"><img src="/question/type/musictheory/roysmusicquestion/images/ZestiendeRust.png"></button>
+                <button type="button" onclick="addRest(1,' . '\'' . $guid . '\'' . ')"><img src="/question/type/musictheory/roysmusicquestion/images/TweeEnDertigsteRust.png"></button>
+            </div>
+            <br>
+            <div>
+                SCORE <input type="text" id="result_' . $guid .'" style="text-align: center;" readonly></input>
+            </div>
+            <br>
+            <div><b>Het gegeven antwoord afspelen:</b></div>
+            <div style="
+                display: -ms-flexbox;
+                display: flex;
+                -ms-flex-wrap: wrap;
+                flex-wrap: wrap;
+            ">
+                <div id="inputmidi_' . $guid .'" style="width:250px;"></div>
+                <br><br>
+                <input type="hidden" id="abcstring_' . $guid .'"></input><script>document.getElementById("abcstring_"  + guid).value = "' . $abcstring . '";</script>
+                <input type="hidden" id="measurecount_' . $guid .'"></input><script>document.getElementById("measurecount_"  + guid).value = "' . $measurecount . '";</script>
+                <input type="hidden" id="measuretype_' . $guid .'"></input><script>document.getElementById("measuretype_"  + guid).value = "' . substr($abcstring, 0, 5) . '";</script> 
+                <input type="hidden" id="ratingtype_' . $guid .'"></input><script>document.getElementById("ratingtype_"  + guid).value = "' . $ratingtype . '";</script>                
+                <input type="hidden" id="durationtot_' . $guid .'"></input>
+                <input type="hidden" id="measuretot_' . $guid .'"></input>
+                <input type="hidden" id="answer_' . $guid .'"></input>
+            </div>
+        </div>
+        ');
+     
+        if ($qa->get_state() == question_state::$invalid) {
+            $currentltr = $qa->get_last_qt_var('musictheory_answer_ltr');
+            if ($question->musictheory_includealterations) {
+                $currentacc = $qa->get_last_qt_var('musictheory_answer_acc');
+            }
+            if ($question->musictheory_considerregister) {
+                $currentreg = $qa->get_last_qt_var('musictheory_answer_reg');
+            }
+            $answerarray = array();
+            $answerarray['musictheory_answer_ltr'] = $currentltr;
+
+            if ($question->musictheory_includealterations) {
+                $answerarray['musictheory_answer_acc'] = $currentacc;
+            }
+            if ($question->musictheory_considerregister) {
+                $answerarray['musictheory_answer_reg'] = $currentreg;
+            }
+            $result .= html_writer::nonempty_tag('div', $question->get_validation_error($answerarray),
+                                                                                        array('class' => 'validationerror'));
+        }
+
+        return $result;
+    }
+
+    public function correct_response(question_attempt $qa) {
+        $question = $qa->get_question();
+        $correctresponsearray = $question->get_correct_response();
+        $ltr = get_string('note' . strtolower($correctresponsearray['musictheory_answer_ltr']), 'qtype_musictheory');
+        if ($question->musictheory_includealterations) {
+            $acckey = str_replace('#', 'sharp', $correctresponsearray['musictheory_answer_acc']);
+            $acc = get_string('acc_' . $acckey, 'qtype_musictheory');
+        } else {
+            $acc = '';
+        }
+        if ($question->musictheory_considerregister) {
+            $reg = $correctresponsearray['musictheory_answer_reg'];
+        } else {
+            $reg = '';
+        }
+        $note = $ltr . $acc . $reg;
+        return get_string('correctansweris', 'qtype_musictheory') . ' <b>' . $note . '</b>';
+    }
+
+}
